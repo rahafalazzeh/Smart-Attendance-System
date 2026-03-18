@@ -1,0 +1,1 @@
+print("Hello! I am the AI Model. I am waiting for the camera and code...")

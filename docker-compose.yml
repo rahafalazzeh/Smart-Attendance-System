@@ -1,0 +1,32 @@
+services:
+  # 1. قاعدة البيانات (جاهزة للعمل فوراً)
+  db:
+    image: ankane/pgvector:latest
+    container_name: attendance_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: attendance_system
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. خدمة الـ AI (رح تبني نفسها من مجلد AI-model)
+  ai_service:
+    build: ./AI-model
+    container_name: attendance_ai
+    depends_on:
+      - db
+    # هاد السطر بخلي الحاوية تضل شغالة حتى لو ما في كود معقد
+    tty: true 
+
+  # 3. خدمة الويب (رح تبني نفسها من مجلد Website)
+  web_service:
+    build: ./Website
+    container_name: attendance_web
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:
