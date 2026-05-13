@@ -1,0 +1,326 @@
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+    width: 220px;
+    background: #111827;
+    color: white;
+    padding: 15px;
+    transition: 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar h2 {
+    margin-bottom: 20px;
+    font-size: 18px;
+    white-space: nowrap;
+}
+
+.sidebar a {
+    display: block;
+    color: #d1d5db;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 8px;
+}
+
+.sidebar a:hover {
+    background: #1f2937;
+}
+
+/* collapsed */
+.sidebar.closed {
+    width: 70px;
+}
+
+.sidebar.closed h2 {
+    display: none;
+}
+
+.sidebar.closed a {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.sidebar.closed a span {
+    display: none;
+}
+
+/* ================= ACTIVE SIDEBAR LINK ================= */
+
+.sidebar a.active {
+    background: #4f46e5;
+    color: white;
+    font-weight: bold;
+}
+
+.sidebar a.active:hover {
+    background: #4338ca;
+}
+
+/* ================= CONTENT ================= */
+
+.content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.page-subtitle {
+    color: #6b7280;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+/* ================= TOPBAR ================= */
+
+.topbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.topbar button {
+    background: #111827;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-left: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.topbar button:hover {
+    background: #1f2937;
+}
+
+/* ================= GRID ================= */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.stat-card h3 {
+    font-size: 16px;
+    color: #374151;
+}
+
+.stat-card h2 {
+    margin-top: 10px;
+    font-size: 28px;
+}
+
+/* ================= COURSE LIST ================= */
+
+.course-list {
+    margin-top: 15px;
+}
+
+.course-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e5e7eb;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.course-item p {
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* ================= FORMS ================= */
+
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+input {
+    padding: 9px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+}
+
+select {
+    padding: 9px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+input:focus,
+select:focus {
+    border-color: #4f46e5;
+}
+
+/* ================= TABLE ================= */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th {
+    background: #111827;
+    color: white;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+/* ================= BUTTONS ================= */
+
+.btn {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #3730a3;
+}
+
+.pdf-btn {
+    background: #ef4444;
+}
+
+.pdf-btn:hover {
+    background: #dc2626;
+}
+
+.danger-btn {
+    background: #ef4444;
+}
+
+.danger-btn:hover {
+    background: #dc2626;
+}
+
+.small-btn {
+    padding: 7px 10px;
+    font-size: 13px;
+}
+
+/* ================= SESSION REPORT STATUS ================= */
+
+.present-text {
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.absent-text {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+/* ================= INSTRUCTOR / SESSION STATUS ================= */
+
+.status-active {
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.status-closed {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.session-action {
+    margin-top: 10px;
+}
+
+/* ================= SESSION STATUS BADGES ================= */
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.status-active-badge {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-closed-badge {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ================= EMPTY MESSAGE ================= */
+
+.empty-message {
+    padding: 25px;
+    text-align: center;
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    border-radius: 12px;
+    color: #6b7280;
+}
+
+.empty-message h3 {
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+/* ================= SEARCH INPUT ================= */
+
+.search-input {
+    width: 100%;
+    max-width: 420px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+    margin-bottom: 10px;
+}
+
+.search-input:focus {
+    border-color: #4f46e5;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        width: 180px;
+    }
+}

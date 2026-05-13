@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <h2>Admin Panel</h2>
+
+        <a href="/admin-dashboard" class="active">
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/reports">
+            <span>Reports</span>
+        </a>
+
+        <a href="/logout">
+            <span>Logout</span>
+        </a>
+
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <div class="topbar">
+            <button onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <h2>Admin Dashboard</h2>
+
+        <p class="page-subtitle">
+            Monitor attendance sessions, and system reports.
+        </p>
+
+        <!-- STATS CARDS -->
+       <div class="grid">
+
+    <div class="card stat-card">
+        <h3>Total Students</h3>
+        <h2>{{ total_students }}</h2>
+    </div>
+
+    <div class="card stat-card">
+        <h3>Active Sessions</h3>
+        <h2>{{ active_sessions }}</h2>
+    </div>
+
+    <div class="card stat-card">
+        <h3>Closed Sessions</h3>
+        <h2>{{ closed_sessions }}</h2>
+    </div>
+
+    <div class="card stat-card">
+        <h3>Attendance Records</h3>
+        <h2>{{ total_attendance }}</h2>
+    </div>
+
+</div>
+
+        <br>
+
+        <!-- ADMIN ACTIONS -->
+<div class="card">
+
+    <h3>Admin Actions</h3>
+
+    <p class="page-subtitle">
+        The admin can monitor attendance sessions and view reports.
+    </p>
+
+    <br>
+
+    <a href="/reports" class="btn pdf-btn">
+        View Reports
+    </a>
+
+</div>
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

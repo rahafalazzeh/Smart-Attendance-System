@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Session Report</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="sidebar">
+
+        {% if user_role == 'admin' %}
+            <h2>Admin Panel</h2>
+
+            <a href="/admin-dashboard">
+                <span>Dashboard</span>
+            </a>
+
+        {% else %}
+            <h2>Instructor</h2>
+
+            <a href="/instructor-dashboard">
+                <span>Dashboard</span>
+            </a>
+        {% endif %}
+
+        <a href="/reports" class="active">
+            <span>Reports</span>
+        </a>
+
+        <a href="/logout">
+            <span>Logout</span>
+        </a>
+
+    </div>
+
+    <div class="content">
+
+        <div class="topbar">
+            <button onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <h2>Session Report</h2>
+
+        <p class="page-subtitle">
+            Detailed attendance status for this lecture session.
+        </p>
+
+        <div class="card">
+
+            <h3>Session Information</h3>
+
+            <br>
+
+            <p><strong>Session ID:</strong> {{ current_session.session_id }}</p>
+
+            {% if course %}
+                <p><strong>Course:</strong> {{ course.name }}</p>
+                <p><strong>Section:</strong> {{ course.section }}</p>
+            {% endif %}
+
+            <p>
+                <strong>Status:</strong>
+
+                {% if current_session.status == 'active' %}
+                    <span class="status-badge status-active-badge">Active</span>
+                {% else %}
+                    <span class="status-badge status-closed-badge">Closed</span>
+                {% endif %}
+            </p>
+
+            <br>
+
+            <a href="/export-session-report-pdf/{{ current_session.session_id }}" class="btn pdf-btn">
+                Export PDF
+            </a>
+
+        </div>
+
+        <br>
+
+        <div class="grid">
+
+            <div class="card stat-card">
+                <h3>Total Students</h3>
+                <h2>{{ total_students }}</h2>
+            </div>
+
+            <div class="card stat-card">
+                <h3>Present</h3>
+                <h2>{{ total_present }}</h2>
+            </div>
+
+            <div class="card stat-card">
+                <h3>Absent</h3>
+                <h2>{{ total_absent }}</h2>
+            </div>
+
+            <div class="card stat-card">
+                <h3>Attendance Rate</h3>
+                <h2>{{ attendance_percentage }}%</h2>
+            </div>
+
+        </div>
+
+        <br>
+
+        <div class="card">
+
+    <h3>Students Status</h3>
+
+    <br>
+
+    <input 
+        type="text" 
+        id="studentSearch" 
+        placeholder="Search by student ID, name, department, or status..."
+        onkeyup="searchStudents()"
+        class="search-input"
+    >
+
+    <table id="studentsTable">
+
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                </tr>
+
+                {% for s in students %}
+
+                <tr>
+                    <td>{{ s.id }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.dept }}</td>
+
+                    {% if s.status == 'Present' %}
+                        <td class="present-text">Present</td>
+                    {% else %}
+                        <td class="absent-text">Absent</td>
+                    {% endif %}
+                </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<script>
+function searchStudents() {
+    let input = document.getElementById("studentSearch");
+    let filter = input.value.toLowerCase();
+    let table = document.getElementById("studentsTable");
+    let rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) {
+        let rowText = rows[i].innerText.toLowerCase();
+
+        if (rowText.includes(filter)) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+</script>
+
+</body>
+</html>
