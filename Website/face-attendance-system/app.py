@@ -2,10 +2,59 @@ from flask import Flask, render_template, request, redirect, session, jsonify, s
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from datetime import datetime
+import mysql.connector
+from db_config import DB_CONFIG
 
 app = Flask(__name__)
 app.secret_key = "secret-key"
 
+# =========================
+# DATABASE CONNECTION
+# =========================
+
+def get_db_connection():
+    return mysql.connector.connect(**DB_CONFIG)
+
+
+def fetch_one(query, params=None):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute(query, params or ())
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return result
+
+
+def fetch_all(query, params=None):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute(query, params or ())
+    results = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return results
+
+
+def execute_query(query, params=None):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute(query, params or ())
+    conn.commit()
+
+    last_id = cursor.lastrowid
+
+    cursor.close()
+    conn.close()
+
+    return last_id
 
 # =========================
 # FAKE DATABASE
@@ -132,26 +181,49 @@ def get_attendance_for_sessions(instructor_sessions):
 @app.route("/")
 def login():
     return render_template("login.html")
-
-
 @app.route("/login", methods=["POST"])
 def handle_login():
 
     username = request.form.get("username")
     password = request.form.get("password")
 
-    if username == "admin" and password == "123":
-        session["role"] = "admin"
-        session["username"] = username
-        return redirect("/admin-dashboard")
+    print("USERNAME ENTERED:", username)
+    print("PASSWORD ENTERED:", password)
 
-    elif username == "instructor" and password == "123":
-        session["role"] = "instructor"
-        session["username"] = username
-        return redirect("/instructor-dashboard")
+    user = fetch_one(
+        """
+        SELECT user_id, username, password_hash, full_name, role
+        FROM users
+        WHERE username = %s
+        AND is_active = 1
+        """,
+        (username,)
+    )
 
+    print("USER FROM DATABASE:", user)
+
+    if user:
+        print("DB PASSWORD:", user["password_hash"])
+        print("DB ROLE:", user["role"])
+
+    if user and user["password_hash"] == password:
+
+        if user["role"] == "admin":
+            session["role"] = "admin"
+            session["username"] = user["username"]
+            session["user_id"] = user["user_id"]
+            session["full_name"] = user["full_name"]
+            return redirect("/admin-dashboard")
+
+        elif user["role"] == "instructor":
+            session["role"] = "instructor"
+            session["username"] = user["username"]
+            session["user_id"] = user["user_id"]
+            session["full_name"] = user["full_name"]
+            return redirect("/instructor-dashboard")
+
+    print("LOGIN FAILED")
     return redirect("/")
-
 
 @app.route("/logout")
 def logout():
