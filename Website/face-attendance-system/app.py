@@ -118,7 +118,6 @@ def format_time_value(value):
     if value is None:
         return ""
 
-    # If MySQL returns TIME as timedelta
     if hasattr(value, "total_seconds"):
         total_seconds = int(value.total_seconds())
         hours = total_seconds // 3600
@@ -127,7 +126,6 @@ def format_time_value(value):
 
     text = str(value)
 
-    # If value is like 08:00:00 or 8:00:00
     if ":" in text:
         parts = text.split(":")
         try:
@@ -138,6 +136,27 @@ def format_time_value(value):
             return text[:5]
 
     return text
+
+
+def get_started_by_value():
+    """
+    Database has admin_user table.
+    If session.started_by is linked to admin_user, use first admin_user id.
+    If not found, use current logged-in user_id.
+    """
+    admin_user = fetch_one(
+        """
+        SELECT user_id
+        FROM admin_user
+        ORDER BY user_id
+        LIMIT 1
+        """
+    )
+
+    if admin_user:
+        return admin_user["user_id"]
+
+    return session.get("user_id")
 
 
 def get_course(course_id):
@@ -219,6 +238,24 @@ def get_students_for_courses(instructor_courses):
     )
 
 
+def get_students_for_section(section_id):
+
+    return fetch_all(
+        """
+        SELECT 
+            student.student_id AS id,
+            student.university_id AS university_id,
+            student.full_name AS name,
+            student.department AS dept
+        FROM section_students
+        JOIN student ON section_students.student_id = student.student_id
+        WHERE section_students.section_id = %s
+        ORDER BY student.full_name
+        """,
+        (section_id,)
+    )
+
+
 def is_course_active_now(course):
     now = datetime.now()
 
@@ -242,6 +279,8 @@ def get_active_courses_now(instructor_courses):
         c for c in instructor_courses
         if is_course_active_now(c)
     ]
+
+
 def format_session_row(row):
     if row is None:
         return None
@@ -254,6 +293,27 @@ def format_session_row(row):
         "start_time": format_time_value(row["start_time"]),
         "end_time": format_time_value(row["end_time"])
     }
+
+
+def get_session_by_id(session_id):
+    row = fetch_one(
+        """
+        SELECT 
+            session_id,
+            section_id,
+            session_date,
+            start_time,
+            end_time,
+            is_active
+        FROM `session`
+        WHERE session_id = %s
+        """,
+        (session_id,)
+    )
+
+    return format_session_row(row)
+
+
 def get_sessions_for_courses(instructor_courses):
 
     section_ids = [c["id"] for c in instructor_courses]
@@ -283,6 +343,7 @@ def get_sessions_for_courses(instructor_courses):
         format_session_row(row)
         for row in rows
     ]
+
 
 def get_attendance_for_sessions(instructor_sessions):
 
@@ -368,26 +429,17 @@ def admin_dashboard():
     if not is_admin():
         return redirect("/")
 
-    total_students = len(students)
-
-    active_sessions = len([
-        s for s in sessions
-        if s["status"] == "active"
-    ])
-
-    closed_sessions = len([
-        s for s in sessions
-        if s["status"] == "closed"
-    ])
-
-    total_attendance = len(attendance)
+    total_students_result = fetch_one("SELECT COUNT(*) AS total FROM student")
+    active_sessions_result = fetch_one("SELECT COUNT(*) AS total FROM `session` WHERE is_active = 1")
+    closed_sessions_result = fetch_one("SELECT COUNT(*) AS total FROM `session` WHERE is_active = 0")
+    attendance_result = fetch_one("SELECT COUNT(*) AS total FROM attendance")
 
     return render_template(
         "admin_dashboard.html",
-        total_students=total_students,
-        active_sessions=active_sessions,
-        closed_sessions=closed_sessions,
-        total_attendance=total_attendance
+        total_students=total_students_result["total"],
+        active_sessions=active_sessions_result["total"],
+        closed_sessions=closed_sessions_result["total"],
+        total_attendance=attendance_result["total"]
     )
 
 
@@ -405,29 +457,30 @@ def instructor_dashboard():
     instructor_sessions = get_sessions_for_courses(instructor_courses)
     instructor_attendance = get_attendance_for_sessions(instructor_sessions)
 
-    last_session = instructor_sessions[-1] if instructor_sessions else None
+    last_session = instructor_sessions[0] if instructor_sessions else None
 
     current_lectures = []
 
     for course in active_courses:
 
         active_session_row = fetch_one(
-    """
-    SELECT 
-        session_id,
-        section_id,
-        session_date,
-        start_time,
-        end_time,
-        is_active
-    FROM `session`
-    WHERE section_id = %s
-    AND is_active = 1
-    ORDER BY session_id DESC
-    LIMIT 1
-    """,
-    (course["id"],)
-         )
+            """
+            SELECT 
+                session_id,
+                section_id,
+                session_date,
+                start_time,
+                end_time,
+                is_active
+            FROM `session`
+            WHERE section_id = %s
+            AND is_active = 1
+            ORDER BY session_id DESC
+            LIMIT 1
+            """,
+            (course["id"],)
+        )
+
         active_session = format_session_row(active_session_row)
 
         current_lectures.append({
@@ -502,31 +555,20 @@ def start_session(course_id):
             course_id,
             course["start_time"],
             course["end_time"],
-            session.get("user_id")
+            get_started_by_value()
         )
     )
 
     return redirect(f"/attendance/{new_session_id}")
+
+
 @app.route("/end-session/<int:session_id>")
 def end_session(session_id):
 
     if not is_instructor():
         return redirect("/")
 
-    current_session = fetch_one(
-        """
-        SELECT 
-            session_id,
-            section_id,
-            session_date,
-            start_time,
-            end_time,
-            is_active
-        FROM `session`
-        WHERE session_id = %s
-        """,
-        (session_id,)
-    )
+    current_session = get_session_by_id(session_id)
 
     if current_session is None:
         return redirect("/instructor-dashboard")
@@ -535,7 +577,7 @@ def end_session(session_id):
         c["id"] for c in get_instructor_courses()
     ]
 
-    if current_session["section_id"] not in instructor_section_ids:
+    if current_session["course_id"] not in instructor_section_ids:
         return redirect("/instructor-dashboard")
 
     execute_query(
@@ -548,6 +590,8 @@ def end_session(session_id):
     )
 
     return redirect(f"/attendance/{session_id}")
+
+
 # =========================
 # ATTENDANCE - LIVE SESSION PAGE
 # =========================
@@ -558,47 +602,48 @@ def attendance_page(session_id):
     if not is_instructor():
         return redirect("/")
 
-    current_session = next(
-        (s for s in sessions if s["session_id"] == session_id),
-        None
-    )
+    current_session = get_session_by_id(session_id)
 
     if current_session is None:
         return redirect("/instructor-dashboard")
 
-    course = get_course(current_session["course_id"])
-
-    instructor_course_ids = [
+    instructor_section_ids = [
         c["id"] for c in get_instructor_courses()
     ]
 
-    if current_session["course_id"] not in instructor_course_ids:
+    if current_session["course_id"] not in instructor_section_ids:
         return redirect("/instructor-dashboard")
 
-    session_student_ids = course_students.get(current_session["course_id"], [])
+    course = get_course(current_session["course_id"])
 
-    session_students = [
-        s for s in students
-        if s["id"] in session_student_ids
-    ]
+    session_students = get_students_for_section(current_session["course_id"])
 
-    session_attendance = [
-        a for a in attendance
-        if str(a["session_id"]) == str(session_id)
-    ]
+    session_attendance = fetch_all(
+        """
+        SELECT 
+            attendance_id,
+            session_id,
+            student_id,
+            status,
+            recognition_time
+        FROM attendance
+        WHERE session_id = %s
+        """,
+        (session_id,)
+    )
 
-    present_student_ids = [
-        a["student_id"] for a in session_attendance
-    ]
+    present_student_ids = set(
+        str(a["student_id"]) for a in session_attendance
+    )
 
     present_students = [
         s for s in session_students
-        if s["id"] in present_student_ids
+        if str(s["id"]) in present_student_ids
     ]
 
     absent_students = [
         s for s in session_students
-        if s["id"] not in present_student_ids
+        if str(s["id"]) not in present_student_ids
     ]
 
     total_students = len(session_students)
@@ -635,10 +680,7 @@ def mark_attendance():
     if not student_id or not session_id:
         return redirect("/instructor-dashboard")
 
-    current_session = next(
-        (s for s in sessions if str(s["session_id"]) == str(session_id)),
-        None
-    )
+    current_session = get_session_by_id(session_id)
 
     if current_session is None:
         return redirect("/instructor-dashboard")
@@ -646,22 +688,38 @@ def mark_attendance():
     if current_session["status"] != "active":
         return redirect(f"/attendance/{session_id}")
 
-    allowed_students = course_students.get(current_session["course_id"], [])
-
-    if student_id not in allowed_students:
-        return redirect(f"/attendance/{session_id}")
-
-    already_marked = any(
-        a["student_id"] == student_id and str(a["session_id"]) == str(session_id)
-        for a in attendance
+    allowed_student = fetch_one(
+        """
+        SELECT student_id
+        FROM section_students
+        WHERE section_id = %s
+        AND student_id = %s
+        """,
+        (current_session["course_id"], student_id)
     )
 
-    if not already_marked:
-        attendance.append({
-            "student_id": student_id,
-            "session_id": session_id,
-            "status": "Present"
-        })
+    if allowed_student is None:
+        return redirect(f"/attendance/{session_id}")
+
+    already_marked = fetch_one(
+        """
+        SELECT attendance_id
+        FROM attendance
+        WHERE session_id = %s
+        AND student_id = %s
+        """,
+        (session_id, student_id)
+    )
+
+    if already_marked is None:
+        execute_query(
+            """
+            INSERT INTO attendance
+            (session_id, student_id, status, recognition_time)
+            VALUES (%s, %s, %s, NOW())
+            """,
+            (session_id, student_id, "Present")
+        )
 
     return redirect(f"/attendance/{session_id}")
 
@@ -963,11 +1021,16 @@ def export_session_report_pdf(session_id):
 @app.route("/api/dashboard-data")
 def dashboard_data():
 
+    students_count = fetch_one("SELECT COUNT(*) AS total FROM student")
+    courses_count = fetch_one("SELECT COUNT(*) AS total FROM course")
+    sessions_count = fetch_one("SELECT COUNT(*) AS total FROM `session`")
+    attendance_count = fetch_one("SELECT COUNT(*) AS total FROM attendance")
+
     return jsonify({
-        "students": len(students),
-        "courses": len(courses),
-        "sessions": len(sessions),
-        "attendance": len(attendance)
+        "students": students_count["total"],
+        "courses": courses_count["total"],
+        "sessions": sessions_count["total"],
+        "attendance": attendance_count["total"]
     })
 
 
