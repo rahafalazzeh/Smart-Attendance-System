@@ -242,24 +242,70 @@ def get_active_courses_now(instructor_courses):
         c for c in instructor_courses
         if is_course_active_now(c)
     ]
+def format_session_row(row):
+    if row is None:
+        return None
 
-
+    return {
+        "session_id": row["session_id"],
+        "course_id": row["section_id"],
+        "status": "active" if row["is_active"] == 1 else "closed",
+        "session_date": row["session_date"],
+        "start_time": format_time_value(row["start_time"]),
+        "end_time": format_time_value(row["end_time"])
+    }
 def get_sessions_for_courses(instructor_courses):
-    course_ids = [c["id"] for c in instructor_courses]
+
+    section_ids = [c["id"] for c in instructor_courses]
+
+    if not section_ids:
+        return []
+
+    placeholders = ",".join(["%s"] * len(section_ids))
+
+    rows = fetch_all(
+        f"""
+        SELECT 
+            session_id,
+            section_id,
+            session_date,
+            start_time,
+            end_time,
+            is_active
+        FROM `session`
+        WHERE section_id IN ({placeholders})
+        ORDER BY session_date DESC, start_time DESC
+        """,
+        tuple(section_ids)
+    )
 
     return [
-        s for s in sessions
-        if s["course_id"] in course_ids
+        format_session_row(row)
+        for row in rows
     ]
-
 
 def get_attendance_for_sessions(instructor_sessions):
-    session_ids = [str(s["session_id"]) for s in instructor_sessions]
 
-    return [
-        a for a in attendance
-        if str(a["session_id"]) in session_ids
-    ]
+    session_ids = [s["session_id"] for s in instructor_sessions]
+
+    if not session_ids:
+        return []
+
+    placeholders = ",".join(["%s"] * len(session_ids))
+
+    return fetch_all(
+        f"""
+        SELECT 
+            attendance_id,
+            session_id,
+            student_id,
+            status,
+            recognition_time
+        FROM attendance
+        WHERE session_id IN ({placeholders})
+        """,
+        tuple(session_ids)
+    )
 
 
 # =========================
@@ -365,14 +411,24 @@ def instructor_dashboard():
 
     for course in active_courses:
 
-        active_session = next(
-            (
-                s for s in sessions
-                if s["course_id"] == course["id"]
-                and s["status"] == "active"
-            ),
-            None
-        )
+        active_session_row = fetch_one(
+    """
+    SELECT 
+        session_id,
+        section_id,
+        session_date,
+        start_time,
+        end_time,
+        is_active
+    FROM `session`
+    WHERE section_id = %s
+    AND is_active = 1
+    ORDER BY session_id DESC
+    LIMIT 1
+    """,
+    (course["id"],)
+         )
+        active_session = format_session_row(active_session_row)
 
         current_lectures.append({
             "course": course,
@@ -415,54 +471,83 @@ def start_session(course_id):
     if not is_course_active_now(course):
         return redirect("/instructor-dashboard")
 
-    existing_active_session = next(
-        (
-            s for s in sessions
-            if s["course_id"] == course_id and s["status"] == "active"
-        ),
-        None
+    existing_session = fetch_one(
+        """
+        SELECT 
+            session_id,
+            section_id,
+            session_date,
+            start_time,
+            end_time,
+            is_active
+        FROM `session`
+        WHERE section_id = %s
+        AND is_active = 1
+        ORDER BY session_id DESC
+        LIMIT 1
+        """,
+        (course_id,)
     )
 
-    if existing_active_session:
-        return redirect(f"/attendance/{existing_active_session['session_id']}")
+    if existing_session:
+        return redirect(f"/attendance/{existing_session['session_id']}")
 
-    new_session = {
-        "session_id": len(sessions) + 1,
-        "course_id": course_id,
-        "status": "active"
-    }
+    new_session_id = execute_query(
+        """
+        INSERT INTO `session`
+        (section_id, session_date, start_time, end_time, is_active, started_by)
+        VALUES (%s, CURDATE(), %s, %s, 1, %s)
+        """,
+        (
+            course_id,
+            course["start_time"],
+            course["end_time"],
+            session.get("user_id")
+        )
+    )
 
-    sessions.append(new_session)
-
-    return redirect(f"/attendance/{new_session['session_id']}")
-
-
+    return redirect(f"/attendance/{new_session_id}")
 @app.route("/end-session/<int:session_id>")
 def end_session(session_id):
 
     if not is_instructor():
         return redirect("/")
 
-    current_session = next(
-        (s for s in sessions if s["session_id"] == session_id),
-        None
+    current_session = fetch_one(
+        """
+        SELECT 
+            session_id,
+            section_id,
+            session_date,
+            start_time,
+            end_time,
+            is_active
+        FROM `session`
+        WHERE session_id = %s
+        """,
+        (session_id,)
     )
 
     if current_session is None:
         return redirect("/instructor-dashboard")
 
-    instructor_course_ids = [
+    instructor_section_ids = [
         c["id"] for c in get_instructor_courses()
     ]
 
-    if current_session["course_id"] not in instructor_course_ids:
+    if current_session["section_id"] not in instructor_section_ids:
         return redirect("/instructor-dashboard")
 
-    current_session["status"] = "closed"
+    execute_query(
+        """
+        UPDATE `session`
+        SET is_active = 0
+        WHERE session_id = %s
+        """,
+        (session_id,)
+    )
 
     return redirect(f"/attendance/{session_id}")
-
-
 # =========================
 # ATTENDANCE - LIVE SESSION PAGE
 # =========================
