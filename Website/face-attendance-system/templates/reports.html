@@ -146,6 +146,7 @@
 
                 <tr>
                     <th>Session ID</th>
+                    <th>Date</th>
                     <th>Course</th>
                     <th>Section</th>
                     <th>Status</th>
@@ -157,9 +158,9 @@
 
                 <tr>
                     <td>{{ s.session_id }}</td>
+                    <td>{{ s.session_date }}</td>
                     <td>{{ s.course_name }}</td>
                     <td>{{ s.section }}</td>
-
                     <td>
                         {% if s.status == 'active' %}
                             <span class="status-badge status-active-badge">Active</span>

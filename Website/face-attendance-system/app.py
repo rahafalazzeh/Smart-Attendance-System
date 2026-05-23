@@ -211,7 +211,29 @@ def get_instructor_courses():
         c["end_time"] = format_time_value(c["end_time"])
 
     return instructor_courses
+def get_all_courses_sections():
 
+    all_courses = fetch_all(
+        """
+        SELECT 
+            `section`.section_id AS id,
+            course.course_name AS name,
+            CONCAT('Section ', `section`.section_id) AS section,
+            `section`.day_of_week AS day,
+            `section`.start_time AS start_time,
+            `section`.end_time AS end_time,
+            `section`.lecturer_id AS instructor_id
+        FROM `section`
+        JOIN course ON `section`.course_id = course.course_id
+        ORDER BY course.course_name, `section`.section_id
+        """
+    )
+
+    for c in all_courses:
+        c["start_time"] = format_time_value(c["start_time"])
+        c["end_time"] = format_time_value(c["end_time"])
+
+    return all_courses
 
 def get_students_for_courses(instructor_courses):
 
@@ -730,43 +752,46 @@ def mark_attendance():
 
     return redirect(f"/attendance/{session_id}")
 
-
 # =========================
 # REPORTS
 # =========================
 
 def build_session_report_data(session_id):
 
-    current_session = next(
-        (s for s in sessions if s["session_id"] == session_id),
-        None
-    )
+    current_session = get_session_by_id(session_id)
 
     if current_session is None:
         return None
 
     course = get_course(current_session["course_id"])
 
-    session_student_ids = course_students.get(current_session["course_id"], [])
+    session_students = get_students_for_section(current_session["course_id"])
 
-    session_students = [
-        s for s in students
-        if s["id"] in session_student_ids
-    ]
+    session_attendance = fetch_all(
+        """
+        SELECT 
+            attendance_id,
+            session_id,
+            student_id,
+            status,
+            recognition_time
+        FROM attendance
+        WHERE session_id = %s
+        """,
+        (session_id,)
+    )
 
-    session_attendance = [
-        a for a in attendance
-        if str(a["session_id"]) == str(session_id)
-    ]
-
-    present_student_ids = [
-        a["student_id"] for a in session_attendance
-    ]
+    present_student_ids = set(
+        str(a["student_id"]) for a in session_attendance
+    )
 
     report_students = []
 
     for s in session_students:
-        status = "Present" if s["id"] in present_student_ids else "Absent"
+        if str(s["id"]) in present_student_ids:
+            status = "Present"
+        else:
+            status = "Absent"
 
         report_students.append({
             "id": s["id"],
@@ -804,26 +829,65 @@ def reports():
     selected_course_name = request.form.get("course_name") if request.method == "POST" else ""
     selected_section = request.form.get("section") if request.method == "POST" else ""
 
+    # Admin يرى كل المواد والشعب والجلسات
     if is_admin():
-        available_courses = courses
-        visible_sessions = sessions
+        available_courses = get_all_courses_sections()
 
+        visible_sessions_rows = fetch_all(
+            """
+            SELECT 
+                `session`.session_id,
+                `session`.section_id,
+                `session`.session_date,
+                `session`.start_time,
+                `session`.end_time,
+                `session`.is_active
+            FROM `session`
+            ORDER BY `session`.session_date DESC, `session`.start_time DESC
+            """
+        )
+
+    # Instructor يرى فقط مواده وشعبه وجلساته
     else:
         available_courses = get_instructor_courses()
 
-        instructor_course_ids = [
+        instructor_section_ids = [
             c["id"] for c in available_courses
         ]
 
-        visible_sessions = [
-            s for s in sessions
-            if s["course_id"] in instructor_course_ids
-        ]
+        if instructor_section_ids:
+            placeholders = ",".join(["%s"] * len(instructor_section_ids))
 
+            visible_sessions_rows = fetch_all(
+                f"""
+                SELECT 
+                    `session`.session_id,
+                    `session`.section_id,
+                    `session`.session_date,
+                    `session`.start_time,
+                    `session`.end_time,
+                    `session`.is_active
+                FROM `session`
+                WHERE `session`.section_id IN ({placeholders})
+                ORDER BY `session`.session_date DESC, `session`.start_time DESC
+                """,
+                tuple(instructor_section_ids)
+            )
+        else:
+            visible_sessions_rows = []
+
+    visible_sessions = [
+        format_session_row(row)
+        for row in visible_sessions_rows
+    ]
+
+    # أسماء المواد حسب الدور
     course_names = sorted(set(
         c["name"] for c in available_courses
     ))
 
+    # للإنستركتور: الشعب تظهر بعد اختيار المادة فقط
+    # للأدمن: الشعب كلها متاحة
     if is_instructor() and selected_course_name:
         sections = sorted(set(
             c["section"] for c in available_courses
@@ -836,19 +900,21 @@ def reports():
     else:
         sections = []
 
+    # فلترة حسب المادة
     if selected_course_name:
-        allowed_course_ids = [
+        allowed_section_ids = [
             c["id"] for c in available_courses
             if c["name"] == selected_course_name
         ]
 
         visible_sessions = [
             s for s in visible_sessions
-            if s["course_id"] in allowed_course_ids
+            if s["course_id"] in allowed_section_ids
         ]
 
+    # فلترة حسب الشعبة
     if selected_section:
-        allowed_course_ids = [
+        allowed_section_ids = [
             c["id"] for c in available_courses
             if c["section"] == selected_section
             and (not selected_course_name or c["name"] == selected_course_name)
@@ -856,7 +922,7 @@ def reports():
 
         visible_sessions = [
             s for s in visible_sessions
-            if s["course_id"] in allowed_course_ids
+            if s["course_id"] in allowed_section_ids
         ]
 
     session_rows = []
@@ -866,6 +932,7 @@ def reports():
 
         session_rows.append({
             "session_id": s["session_id"],
+            "session_date": s["session_date"],
             "course_name": course["name"] if course else "Unknown",
             "section": course["section"] if course else "-",
             "status": s["status"]
@@ -887,20 +954,18 @@ def session_report(session_id):
     if session.get("role") not in ["admin", "instructor"]:
         return redirect("/")
 
-    current_session = next(
-        (s for s in sessions if s["session_id"] == session_id),
-        None
-    )
+    current_session = get_session_by_id(session_id)
 
     if current_session is None:
         return redirect("/reports")
 
+    # Instructor لا يرى إلا جلساته
     if is_instructor():
-        instructor_course_ids = [
+        instructor_section_ids = [
             c["id"] for c in get_instructor_courses()
         ]
 
-        if current_session["course_id"] not in instructor_course_ids:
+        if current_session["course_id"] not in instructor_section_ids:
             return redirect("/reports")
 
     report_data = build_session_report_data(session_id)
@@ -919,8 +984,6 @@ def session_report(session_id):
         attendance_percentage=report_data["attendance_percentage"],
         user_role=session.get("role")
     )
-
-
 # =========================
 # PDF EXPORT
 # =========================
@@ -931,20 +994,18 @@ def export_session_report_pdf(session_id):
     if session.get("role") not in ["admin", "instructor"]:
         return redirect("/")
 
-    current_session = next(
-        (s for s in sessions if s["session_id"] == session_id),
-        None
-    )
+    current_session = get_session_by_id(session_id)
 
     if current_session is None:
         return redirect("/reports")
 
+    # Instructor لا يصدّر إلا جلساته
     if is_instructor():
-        instructor_course_ids = [
+        instructor_section_ids = [
             c["id"] for c in get_instructor_courses()
         ]
 
-        if current_session["course_id"] not in instructor_course_ids:
+        if current_session["course_id"] not in instructor_section_ids:
             return redirect("/reports")
 
     report_data = build_session_report_data(session_id)
@@ -1019,8 +1080,6 @@ def export_session_report_pdf(session_id):
         download_name=f"session_{session_id}_report.pdf",
         mimetype="application/pdf"
     )
-
-
 # =========================
 # API
 # =========================
