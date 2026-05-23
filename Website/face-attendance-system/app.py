@@ -263,7 +263,15 @@ def is_course_active_now(course):
     current_day_full = now.strftime("%A")
     current_time = now.strftime("%H:%M")
 
-    course_days = str(course["day"]).replace(" ", "").split(",")
+    # تنظيف شكل الأيام القادمة من الداتا بيز
+    days_text = str(course["day"])
+    days_text = days_text.replace("{", "")
+    days_text = days_text.replace("}", "")
+    days_text = days_text.replace("'", "")
+    days_text = days_text.replace('"', "")
+    days_text = days_text.replace(" ", "")
+
+    course_days = days_text.split(",")
 
     start_time = format_time_value(course["start_time"])
     end_time = format_time_value(course["end_time"])
@@ -272,7 +280,6 @@ def is_course_active_now(course):
         (current_day_short in course_days or current_day_full in course_days)
         and start_time <= current_time <= end_time
     )
-
 
 def get_active_courses_now(instructor_courses):
     return [
