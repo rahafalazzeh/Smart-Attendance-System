@@ -1083,6 +1083,112 @@ def export_session_report_pdf(session_id):
 # =========================
 # API
 # =========================
+@app.route("/api/mark-attendance", methods=["POST"])
+def api_mark_attendance():
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "message": "No JSON data received"
+        }), 400
+
+    session_id = data.get("session_id")
+    student_id = data.get("student_id")
+    university_id = data.get("university_id")
+
+    if not session_id:
+        return jsonify({
+            "success": False,
+            "message": "session_id is required"
+        }), 400
+
+    current_session = get_session_by_id(session_id)
+
+    if current_session is None:
+        return jsonify({
+            "success": False,
+            "message": "Session not found"
+        }), 404
+
+    if current_session["status"] != "active":
+        return jsonify({
+            "success": False,
+            "message": "Session is closed"
+        }), 400
+
+    # If model sends university_id instead of student_id
+    if not student_id and university_id:
+        student = fetch_one(
+            """
+            SELECT student_id
+            FROM student
+            WHERE university_id = %s
+            """,
+            (university_id,)
+        )
+
+        if student:
+            student_id = student["student_id"]
+
+    if not student_id:
+        return jsonify({
+            "success": False,
+            "message": "student_id or university_id is required"
+        }), 400
+
+    # Check if student belongs to the same section
+    allowed_student = fetch_one(
+        """
+        SELECT student_id
+        FROM section_students
+        WHERE section_id = %s
+        AND student_id = %s
+        """,
+        (current_session["course_id"], student_id)
+    )
+
+    if allowed_student is None:
+        return jsonify({
+            "success": False,
+            "message": "Student does not belong to this section"
+        }), 403
+
+    # Prevent duplicate attendance
+    already_marked = fetch_one(
+        """
+        SELECT attendance_id
+        FROM attendance
+        WHERE session_id = %s
+        AND student_id = %s
+        """,
+        (session_id, student_id)
+    )
+
+    if already_marked:
+        return jsonify({
+            "success": True,
+            "message": "Student already marked as present",
+            "student_id": student_id,
+            "session_id": session_id
+        }), 200
+
+    execute_query(
+        """
+        INSERT INTO attendance
+        (session_id, student_id, status, recognition_time)
+        VALUES (%s, %s, %s, NOW())
+        """,
+        (session_id, student_id, "Present")
+    )
+
+    return jsonify({
+        "success": True,
+        "message": "Attendance recorded successfully",
+        "student_id": student_id,
+        "session_id": session_id
+    }), 201
 
 @app.route("/api/dashboard-data")
 def dashboard_data():
