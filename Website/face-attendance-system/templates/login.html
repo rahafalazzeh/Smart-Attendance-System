@@ -19,9 +19,6 @@
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
         </div>
 
-        <div class="header-link">
-            <a href="/">Home</a>
-        </div>
 
     </div>
 
@@ -43,7 +40,7 @@
             <form method="POST" action="/login">
 
                 <div class="input-group">
-                    <input type="text" name="username" placeholder="Username" required>
+                    <input type="text" name="username" placeholder="Username" autocomplete="username" required>
                 </div>
 
                 <div class="input-group">
