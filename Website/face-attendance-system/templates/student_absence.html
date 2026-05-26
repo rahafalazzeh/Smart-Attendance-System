@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student Absence</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <h2>Instructor</h2>
+
+        <a href="/instructor-dashboard">
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/reports">
+            <span>Reports</span>
+        </a>
+
+        <a href="/student-absence" class="active">
+            <span>Student Absence</span>
+        </a>
+
+        <a href="/logout">
+            <span>Logout</span>
+        </a>
+
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <div class="topbar">
+            <button onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <!-- PAGE HEADER -->
+        <div class="page-header-card">
+            <h2>Student Absence Check</h2>
+            <p class="page-subtitle">
+                Search for a student's attendance summary in one of your course sections.
+            </p>
+        </div>
+
+        <!-- SEARCH FORM -->
+        <div class="card">
+
+            <div class="section-title-row">
+                <div>
+                    <h3>Search Student Absence</h3>
+                    <p class="page-subtitle">
+                        Choose a course section and enter the student's university ID.
+                    </p>
+                </div>
+            </div>
+
+            <form method="POST" class="filter-form">
+
+                <label>Course / Section:</label>
+
+                <select name="section_id" required>
+                    <option value="">Choose Course / Section</option>
+
+                    {% for c in courses %}
+                        <option value="{{ c.id }}" {% if selected_section_id|string == c.id|string %}selected{% endif %}>
+                            {{ c.name }} - {{ c.section }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label>University ID:</label>
+
+                <input 
+                    type="text" 
+                    name="university_id" 
+                    placeholder="Enter student university ID"
+                    value="{{ university_id }}"
+                    required
+                >
+
+                <button type="submit" class="btn">
+                    Check Absence
+                </button>
+
+            </form>
+
+        </div>
+
+        <br>
+
+        {% if error %}
+
+            <div class="empty-message">
+                <h3>Not Found</h3>
+                <p>{{ error }}</p>
+            </div>
+
+        {% endif %}
+
+        {% if result %}
+
+            <!-- STATS -->
+            <div class="grid">
+
+                <div class="card stat-card">
+                    <h3>Total Lectures</h3>
+                    <h2>{{ result.total_sessions }}</h2>
+                </div>
+
+                <div class="card stat-card">
+                    <h3>Present</h3>
+                    <h2>{{ result.present_count }}</h2>
+                </div>
+
+                <div class="card stat-card">
+                    <h3>Absent</h3>
+                    <h2>{{ result.absent_count }}</h2>
+                </div>
+
+                <div class="card stat-card">
+                    <h3>Attendance Rate</h3>
+                    <h2>{{ result.attendance_rate }}%</h2>
+                </div>
+
+            </div>
+
+            <br>
+
+            <!-- STUDENT SUMMARY -->
+            <div class="card">
+
+                <div class="section-title-row">
+                    <div>
+                        <h3>Student Attendance Summary</h3>
+                        <p class="page-subtitle">
+                            Detailed attendance information for the selected student.
+                        </p>
+                    </div>
+                </div>
+
+                <table class="summary-table">
+                    <tr>
+                        <th>Student Name</th>
+                        <td>{{ result.student_name }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>University ID</th>
+                        <td>{{ result.university_id }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Department</th>
+                        <td>{{ result.department }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Course</th>
+                        <td>{{ result.course_name }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Section</th>
+                        <td>{{ result.section }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Total Lectures</th>
+                        <td>{{ result.total_sessions }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Present Count</th>
+                        <td class="present-text">{{ result.present_count }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Absent Count</th>
+                        <td class="absent-text">{{ result.absent_count }}</td>
+                    </tr>
+                </table>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

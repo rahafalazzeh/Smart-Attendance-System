@@ -1,35 +1,44 @@
 .app {
     display: flex;
     min-height: 100vh;
+    background: #f5f6f8;
 }
 
 /* ================= SIDEBAR ================= */
 
 .sidebar {
-    width: 220px;
-    background: #111827;
-    color: white;
-    padding: 15px;
+    width: 230px;
+    background: #ffffff;
+    color: #111827;
+    padding: 18px 15px;
     transition: 0.3s ease;
     overflow: hidden;
+    box-shadow: 4px 0 18px rgba(0, 0, 0, 0.08);
+    border-right: 1px solid #e5e7eb;
 }
 
 .sidebar h2 {
-    margin-bottom: 20px;
-    font-size: 18px;
+    margin-bottom: 25px;
+    font-size: 19px;
     white-space: nowrap;
+    color: #7a0026;
+    font-weight: 700;
 }
 
 .sidebar a {
     display: block;
-    color: #d1d5db;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 8px;
+    color: #374151;
+    padding: 12px 12px;
+    margin: 7px 0;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 15px;
+    transition: 0.2s ease;
 }
 
 .sidebar a:hover {
-    background: #1f2937;
+    background: #fdf2f6;
+    color: #b00035;
 }
 
 /* collapsed */
@@ -43,7 +52,7 @@
 
 .sidebar.closed a {
     text-align: center;
-    padding: 10px 0;
+    padding: 12px 0;
 }
 
 .sidebar.closed a span {
@@ -53,27 +62,34 @@
 /* ================= ACTIVE SIDEBAR LINK ================= */
 
 .sidebar a.active {
-    background: #4f46e5;
+    background: #b00035;
     color: white;
     font-weight: bold;
 }
 
 .sidebar a.active:hover {
-    background: #4338ca;
+    background: #93002c;
+    color: white;
 }
-
 /* ================= CONTENT ================= */
 
 .content {
     flex: 1;
-    padding: 20px;
+    padding: 28px;
     overflow-y: auto;
+}
+
+.content h2 {
+    color: #111827;
+    font-size: 28px;
+    margin-bottom: 5px;
 }
 
 .page-subtitle {
     color: #6b7280;
     margin-top: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    font-size: 16px;
 }
 
 /* ================= TOPBAR ================= */
@@ -81,21 +97,22 @@
 .topbar {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 .topbar button {
-    background: #111827;
+    background: #7a0026;
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: 9px 13px;
     margin-left: 10px;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: 0.2s ease;
 }
 
 .topbar button:hover {
-    background: #1f2937;
+    background: #b00035;
 }
 
 /* ================= GRID ================= */
@@ -103,24 +120,35 @@
 .grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
+    gap: 18px;
 }
 
 .card {
     background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+    border: 1px solid #eef0f3;
+}
+
+.card h3 {
+    color: #111827;
+}
+
+.stat-card {
+    border-top: 4px solid #b00035;
 }
 
 .stat-card h3 {
     font-size: 16px;
-    color: #374151;
+    color: #4b5563;
+    font-weight: 600;
 }
 
 .stat-card h2 {
-    margin-top: 10px;
-    font-size: 28px;
+    margin-top: 12px;
+    font-size: 30px;
+    color: #111827;
 }
 
 /* ================= COURSE LIST ================= */
@@ -134,9 +162,20 @@
     justify-content: space-between;
     align-items: center;
     border: 1px solid #e5e7eb;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    transition: 0.2s ease;
+}
+
+.course-item:hover {
+    border-color: #b00035;
+    box-shadow: 0 6px 18px rgba(176, 0, 53, 0.08);
+}
+
+.course-item strong {
+    color: #111827;
 }
 
 .course-item p {
@@ -149,26 +188,32 @@
 .filter-form {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
 input {
-    padding: 9px;
+    padding: 10px 12px;
     border: 1px solid #d1d5db;
-    border-radius: 8px;
+    border-radius: 9px;
     outline: none;
+    font-size: 15px;
+    background: white;
 }
 
 select {
-    padding: 9px;
+    padding: 10px 12px;
     border: 1px solid #d1d5db;
-    border-radius: 8px;
+    border-radius: 9px;
+    outline: none;
+    font-size: 15px;
+    background: white;
 }
 
 input:focus,
 select:focus {
-    border-color: #4f46e5;
+    border-color: #b00035;
+    box-shadow: 0 0 0 3px rgba(176, 0, 53, 0.12);
 }
 
 /* ================= TABLE ================= */
@@ -176,34 +221,51 @@ select:focus {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
+    margin-top: 16px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 th {
-    background: #111827;
+    background: #7a0026;
     color: white;
+    font-weight: 700;
 }
 
 th, td {
-    padding: 10px;
+    padding: 13px 14px;
     border: 1px solid #e5e7eb;
     text-align: left;
+    font-size: 15px;
+}
+
+td {
+    color: #111827;
+}
+
+tr:nth-child(even) td {
+    background: #fafafa;
 }
 
 /* ================= BUTTONS ================= */
 
 .btn {
     display: inline-block;
-    padding: 10px 15px;
-    background: #4f46e5;
+    padding: 10px 16px;
+    background: #b00035;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 9px;
     cursor: pointer;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    transition: 0.2s ease;
 }
 
 .btn:hover {
-    background: #3730a3;
+    background: #93002c;
 }
 
 .pdf-btn {
@@ -223,7 +285,7 @@ th, td {
 }
 
 .small-btn {
-    padding: 7px 10px;
+    padding: 7px 11px;
     font-size: 13px;
 }
 
@@ -259,7 +321,7 @@ th, td {
 
 .status-badge {
     display: inline-block;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: bold;
@@ -278,12 +340,13 @@ th, td {
 /* ================= EMPTY MESSAGE ================= */
 
 .empty-message {
-    padding: 25px;
+    padding: 28px;
     text-align: center;
-    background: #f9fafb;
+    background: #ffffff;
     border: 1px dashed #d1d5db;
-    border-radius: 12px;
+    border-radius: 14px;
     color: #6b7280;
+    box-shadow: 0 6px 18px rgba(17, 24, 39, 0.04);
 }
 
 .empty-message h3 {
@@ -296,15 +359,17 @@ th, td {
 .search-input {
     width: 100%;
     max-width: 420px;
-    padding: 10px;
+    padding: 11px 12px;
     border: 1px solid #d1d5db;
-    border-radius: 8px;
+    border-radius: 9px;
     outline: none;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    font-size: 15px;
 }
 
 .search-input:focus {
-    border-color: #4f46e5;
+    border-color: #b00035;
+    box-shadow: 0 0 0 3px rgba(176, 0, 53, 0.12);
 }
 
 /* ================= RESPONSIVE ================= */
@@ -312,6 +377,10 @@ th, td {
 @media (max-width: 900px) {
     .grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .content {
+        padding: 22px;
     }
 }
 
@@ -323,4 +392,66 @@ th, td {
     .sidebar {
         width: 180px;
     }
+
+    .content {
+        padding: 18px;
+    }
+
+    .content h2 {
+        font-size: 24px;
+    }
+
+    th, td {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+/* ================= PAGE HEADER CARD ================= */
+
+.page-header-card {
+    background: linear-gradient(135deg, #ffffff, #fff7fa);
+    border: 1px solid #f1d4de;
+    border-left: 5px solid #b00035;
+    padding: 22px 24px;
+    border-radius: 16px;
+    margin-bottom: 22px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.05);
+}
+
+.page-header-card h2 {
+    margin-bottom: 6px;
+}
+
+/* ================= SECTION TITLE ROW ================= */
+
+.section-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* ================= ACTIVE LECTURE ITEM ================= */
+
+.lecture-active-item {
+    background: #fff7fa;
+    border-color: #f1b8ca;
+}
+
+/* ================= LAST SESSION CARD ================= */
+
+.last-session-card {
+    border-left: 5px solid #b00035;
+}
+/* ================= SUMMARY TABLE ================= */
+
+.summary-table th {
+    width: 190px;
+    background: #7a0026;
+    color: white;
+    white-space: nowrap;
+}
+
+.summary-table td {
+    background: white;
 }

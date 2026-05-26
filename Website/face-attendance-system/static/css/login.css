@@ -1,99 +1,188 @@
-html, body {
-    height: 100%;
+* {
     margin: 0;
-    font-family: Arial, sans-serif;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
-/* PAGE CENTER */
-.login-page {
+body {
+    min-height: 100vh;
+    background: #f5f6f8;
+    color: #111827;
+}
+
+/* ================= TOP CONTACT BAR ================= */
+
+.top-contact-bar {
     width: 100%;
-    height: 100vh;
+    height: 30px;
+    background: #b00035;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 45px;
+    font-size: 18px;
+}
+
+.contact-left,
+.contact-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.contact-right {
+    font-size: 17px;
+}
+
+/* ================= HEADER AREA ================= */
+
+.header-area {
+    width: 100%;
+    height: 145px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 55px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.header-logo img {
+    width: 115px;
+    height: auto;
+    object-fit: contain;
+}
+
+.header-link a {
+    color: #b00035;
+    text-decoration: none;
+    font-size: 19px;
+    font-weight: 500;
+}
+
+.header-link a:hover {
+    text-decoration: underline;
+}
+
+/* ================= LOGIN PAGE ================= */
+
+.login-page {
+    min-height: calc(100vh - 215px);
     display: flex;
     justify-content: center;
     align-items: center;
-
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 45px 20px;
 }
 
-/* LOGIN CARD */
-.login-box {
-    width: 360px;
-    max-width: 90%;
+.login-card {
+    width: 460px;
     background: white;
-    padding: 30px;
-    border-radius: 16px;
+    padding: 45px 50px 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
     text-align: center;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
 }
 
-/* TITLE */
-.login-box h2 {
+.login-logo {
+    margin-bottom: 15px;
+}
+
+.login-logo img {
+    width: 155px;
+    height: auto;
+    object-fit: contain;
+}
+
+.login-card h2 {
+    font-size: 26px;
+    color: #111827;
     margin-bottom: 8px;
-    font-size: 28px;
 }
 
 .login-subtitle {
     color: #6b7280;
-    font-size: 16px;
-    margin-bottom: 25px;
+    font-size: 15px;
+    margin-bottom: 28px;
 }
 
-/* INPUT WRAPPER */
+/* ================= FORM ================= */
+
 .input-group {
-    position: relative;
-    width: 85%;
-    margin: 0 auto 18px auto;
+    width: 100%;
+    margin-bottom: 18px;
 }
 
-/* INPUT */
 .input-group input {
     width: 100%;
-    height: 48px;
-    padding: 0 42px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
+    height: 52px;
+    padding: 0 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
     outline: none;
-    font-size: 16px;
-    box-sizing: border-box;
+    font-size: 17px;
+    color: #111827;
+    background: white;
 }
 
 .input-group input:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 5px rgba(79, 70, 229, 0.25);
+    border-color: #b00035;
+    box-shadow: 0 0 0 3px rgba(176, 0, 53, 0.12);
 }
 
-/* LEFT ICON */
-.icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 17px;
-}
-
-/* EYE ICON */
-.eye {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 16px;
-}
-
-/* LOGIN BUTTON */
-.login-box button {
-    width: 85%;
+.login-btn {
+    width: 120px;
     height: 48px;
-    background: #4f46e5;
+    background: #b00035;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 7px;
+    font-size: 18px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 17px;
     margin-top: 5px;
 }
 
-.login-box button:hover {
-    background: #3730a3;
+.login-btn:hover {
+    background: #93002c;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+
+    .top-contact-bar {
+        height: auto;
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        font-size: 15px;
+    }
+
+    .contact-left,
+    .contact-right {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .header-area {
+        height: 120px;
+        padding: 0 25px;
+    }
+
+    .header-logo img {
+        width: 90px;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 430px;
+        padding: 35px 25px;
+    }
+
+    .login-logo img {
+        width: 130px;
+    }
 }

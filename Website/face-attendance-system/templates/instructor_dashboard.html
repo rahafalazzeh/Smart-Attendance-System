@@ -25,6 +25,10 @@
             <span>Reports</span>
         </a>
 
+        <a href="/student-absence">
+            <span>Student Absence</span>
+        </a>
+
         <a href="/logout">
             <span>Logout</span>
         </a>
@@ -38,11 +42,15 @@
             <button onclick="toggleSidebar()">☰</button>
         </div>
 
-        <h2>Instructor Dashboard</h2>
-
-        <p class="page-subtitle">
-            View your courses, active lectures, and attendance sessions.
-        </p>
+        <!-- PAGE HEADER -->
+        <div class="page-header-card">
+            <div>
+                <h2>Instructor Dashboard</h2>
+                <p class="page-subtitle">
+                    Manage your course sections, active lectures, and attendance sessions.
+                </p>
+            </div>
+        </div>
 
         <!-- STATS -->
         <div class="grid">
@@ -74,47 +82,55 @@
         <!-- CURRENT LECTURE -->
         <div class="card">
 
-            <h3>Current Lecture</h3>
-
-            <p class="page-subtitle">
-                If you have a lecture scheduled now, you can start or continue the attendance session.
-            </p>
-
-            <br>
+            <div class="section-title-row">
+                <div>
+                    <h3>Current Lecture</h3>
+                    <p class="page-subtitle">
+                        Start or continue an attendance session if you have a lecture now.
+                    </p>
+                </div>
+            </div>
 
             {% if current_lectures %}
 
-                {% for item in current_lectures %}
+                <div class="course-list">
 
-                <div class="course-item">
+                    {% for item in current_lectures %}
 
-                    <div>
-                        <strong>{{ item.course.name }}</strong>
-                        <p>Section {{ item.course.section }}</p>
-                        <p>{{ item.course.day }} | {{ item.course.start_time }} - {{ item.course.end_time }}</p>
+                    <div class="course-item lecture-active-item">
+
+                        <div>
+                            <strong>{{ item.course.name }}</strong>
+                            <p>{{ item.course.section }}</p>
+                            <p>{{ item.course.day }} | {{ item.course.start_time }} - {{ item.course.end_time }}</p>
+                        </div>
+
+                        {% if item.active_session %}
+
+                            <a href="/attendance/{{ item.active_session.session_id }}" class="btn">
+                                Continue Session
+                            </a>
+
+                        {% else %}
+
+                            <a href="/start-session/{{ item.course.id }}" class="btn">
+                                Start Session
+                            </a>
+
+                        {% endif %}
+
                     </div>
 
-                    {% if item.active_session %}
-
-                        <a href="/attendance/{{ item.active_session.session_id }}" class="btn">
-                            Continue Session
-                        </a>
-
-                    {% else %}
-
-                        <a href="/start-session/{{ item.course.id }}" class="btn">
-                            Start Session
-                        </a>
-
-                    {% endif %}
+                    {% endfor %}
 
                 </div>
 
-                {% endfor %}
-
             {% else %}
 
-                <p>No lecture scheduled right now.</p>
+                <div class="empty-message">
+                    <h3>No Active Lecture</h3>
+                    <p>No lecture is scheduled right now.</p>
+                </div>
 
             {% endif %}
 
@@ -125,13 +141,14 @@
         <!-- ALL COURSES -->
         <div class="card">
 
-            <h3>My Courses</h3>
-
-            <p class="page-subtitle">
-                These are the courses assigned to you.
-            </p>
-
-            <br>
+            <div class="section-title-row">
+                <div>
+                    <h3>My Courses</h3>
+                    <p class="page-subtitle">
+                        These are the course sections assigned to you.
+                    </p>
+                </div>
+            </div>
 
             <div class="course-list">
 
@@ -141,14 +158,14 @@
 
                     <div>
                         <strong>{{ c.name }}</strong>
-                        <p>Section {{ c.section }}</p>
+                        <p>{{ c.section }}</p>
                         <p>{{ c.day }} | {{ c.start_time }} - {{ c.end_time }}</p>
                     </div>
 
                     {% if c in active_courses %}
-                        <span class="status-active">Active Now</span>
+                        <span class="status-badge status-active-badge">Active Now</span>
                     {% else %}
-                        <span class="status-closed">Not Active</span>
+                        <span class="status-badge status-closed-badge">Not Active</span>
                     {% endif %}
 
                 </div>
@@ -163,9 +180,9 @@
 
         <br>
 
-        <div class="card">
+        <div class="card last-session-card">
             <h3>Last Session</h3>
-            <p>Session ID: {{ last_session.session_id }}</p>
+            <p>Session ID: <strong>{{ last_session.session_id }}</strong></p>
         </div>
 
         {% endif %}

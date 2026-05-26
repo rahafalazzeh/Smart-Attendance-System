@@ -2,41 +2,63 @@
 <html>
 
 <head>
-    <title>Login</title>
+    <title>Smart Attendance Login</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 
 <body>
 
-<div class="login-page">
+    <!-- TOP CONTACT BAR -->
+    <div class="top-contact-bar"></div>
 
-    <div class="login-box">
+    <!-- HEADER AREA -->
+    <div class="header-area">
 
-        <h2>Login</h2>
-        <p class="login-subtitle">Face Recognition Attendance System</p>
+        <div class="header-logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+        </div>
 
-        <form method="POST" action="/login">
-
-            <div class="input-group">
-                <span class="icon">👤</span>
-                <input type="text" name="username" placeholder="Username" required>
-            </div>
-
-            <div class="input-group">
-                <span class="icon">🔒</span>
-                <input type="password" id="password" name="password" placeholder="Password" required>
-                <span class="eye" onclick="togglePassword()">👁️</span>
-            </div>
-
-            <button type="submit">Login</button>
-
-        </form>
+        <div class="header-link">
+            <a href="/">Home</a>
+        </div>
 
     </div>
 
-</div>
+    <!-- MAIN LOGIN SECTION -->
+    <div class="login-page">
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <div class="login-card">
+
+            <div class="login-logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="System Logo">
+            </div>
+
+            <h2>Smart Attendance System</h2>
+
+            <p class="login-subtitle">
+                Login to access your attendance dashboard
+            </p>
+
+            <form method="POST" action="/login">
+
+                <div class="input-group">
+                    <input type="text" name="username" placeholder="Username" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Log in
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </body>
 </html>

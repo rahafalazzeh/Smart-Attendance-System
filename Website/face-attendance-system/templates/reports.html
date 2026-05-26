@@ -12,6 +12,7 @@
 
 <div class="app">
 
+    <!-- SIDEBAR -->
     <div class="sidebar">
 
         {% if session.role == 'admin' %}
@@ -36,41 +37,59 @@
             <span>Reports</span>
         </a>
 
+        {% if session.role == 'instructor' %}
+            <a href="/student-absence">
+                <span>Student Absence</span>
+            </a>
+        {% endif %}
+
         <a href="/logout">
             <span>Logout</span>
         </a>
 
     </div>
 
+    <!-- CONTENT -->
     <div class="content">
 
         <div class="topbar">
             <button onclick="toggleSidebar()">☰</button>
         </div>
 
-        {% if session.role == 'admin' %}
+        <!-- PAGE HEADER -->
+        <div class="page-header-card">
 
-            <h2>System Reports</h2>
+            {% if session.role == 'admin' %}
 
-            <p class="page-subtitle">
-                Admin can view all courses, sections, and attendance sessions.
-            </p>
+                <h2>System Reports</h2>
 
-        {% elif session.role == 'instructor' %}
+                <p class="page-subtitle">
+                    View all courses, sections, and attendance sessions across the system.
+                </p>
 
-            <h2>My Reports</h2>
+            {% elif session.role == 'instructor' %}
 
-            <p class="page-subtitle">
-                Choose one of your courses, then choose its related section.
-            </p>
+                <h2>My Reports</h2>
 
-        {% endif %}
+                <p class="page-subtitle">
+                    Filter your course sections and review attendance sessions.
+                </p>
 
+            {% endif %}
+
+        </div>
+
+        <!-- FILTER CARD -->
         <div class="card">
 
-            <h3>Report Filter</h3>
-
-            <br>
+            <div class="section-title-row">
+                <div>
+                    <h3>Report Filter</h3>
+                    <p class="page-subtitle">
+                        Choose a course and section to display related attendance sessions.
+                    </p>
+                </div>
+            </div>
 
             <form method="POST" class="filter-form">
 
@@ -116,7 +135,7 @@
 
                     {% for sec in sections %}
                         <option value="{{ sec }}" {% if selected_section == sec %}selected{% endif %}>
-                            Section {{ sec }}
+                            {{ sec }}
                         </option>
                     {% endfor %}
 
@@ -132,13 +151,22 @@
 
         <br>
 
+        <!-- SESSIONS TABLE -->
         <div class="card">
 
-            {% if session.role == 'admin' %}
-                <h3>All Sessions</h3>
-            {% else %}
-                <h3>My Sessions</h3>
-            {% endif %}
+            <div class="section-title-row">
+                <div>
+                    {% if session.role == 'admin' %}
+                        <h3>All Sessions</h3>
+                    {% else %}
+                        <h3>My Sessions</h3>
+                    {% endif %}
+
+                    <p class="page-subtitle">
+                        Review session details and export attendance reports when needed.
+                    </p>
+                </div>
+            </div>
 
             {% if sessions %}
 
@@ -161,6 +189,7 @@
                     <td>{{ s.session_date }}</td>
                     <td>{{ s.course_name }}</td>
                     <td>{{ s.section }}</td>
+
                     <td>
                         {% if s.status == 'active' %}
                             <span class="status-badge status-active-badge">Active</span>
@@ -170,16 +199,17 @@
                     </td>
 
                     <td>
-                        <a href="/session-report/{{ s.session_id }}" class="btn">
+                        <a href="/session-report/{{ s.session_id }}" class="btn small-btn">
                             View Report
                         </a>
                     </td>
 
                     <td>
-                        <a href="/export-session-report-pdf/{{ s.session_id }}" class="btn pdf-btn">
+                        <a href="/export-session-report-pdf/{{ s.session_id }}" class="btn pdf-btn small-btn">
                             Export PDF
                         </a>
                     </td>
+
                 </tr>
 
                 {% endfor %}
@@ -189,7 +219,7 @@
             {% else %}
 
             <div class="empty-message">
-                <h3>No sessions found</h3>
+                <h3>No Sessions Found</h3>
 
                 {% if session.role == 'admin' %}
                     <p>No attendance sessions match the selected course and section.</p>

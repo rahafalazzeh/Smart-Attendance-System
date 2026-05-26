@@ -985,6 +985,126 @@ def session_report(session_id):
         user_role=session.get("role")
     )
 # =========================
+# STUDENT ABSENCE CHECK
+# =========================
+
+@app.route("/student-absence", methods=["GET", "POST"])
+def student_absence():
+
+    if not is_instructor():
+        return redirect("/")
+
+    instructor_courses = get_instructor_courses()
+
+    result = None
+    error = None
+
+    selected_section_id = request.form.get("section_id") if request.method == "POST" else ""
+    university_id = request.form.get("university_id") if request.method == "POST" else ""
+
+    if request.method == "POST":
+
+        if not selected_section_id or not university_id:
+            error = "Please choose a course/section and enter the student university ID."
+
+        else:
+            selected_section_id = int(selected_section_id)
+
+            instructor_section_ids = [
+                c["id"] for c in instructor_courses
+            ]
+
+            if selected_section_id not in instructor_section_ids:
+                error = "You are not allowed to view this section."
+
+            else:
+                student = fetch_one(
+                    """
+                    SELECT 
+                        student_id,
+                        university_id,
+                        full_name,
+                        department
+                    FROM student
+                    WHERE university_id = %s
+                    """,
+                    (university_id,)
+                )
+
+                if student is None:
+                    error = "Student not found."
+
+                else:
+                    student_in_section = fetch_one(
+                        """
+                        SELECT student_id
+                        FROM section_students
+                        WHERE section_id = %s
+                        AND student_id = %s
+                        """,
+                        (selected_section_id, student["student_id"])
+                    )
+
+                    if student_in_section is None:
+                        error = "This student is not registered in the selected section."
+
+                    else:
+                        course = get_course(selected_section_id)
+
+                        total_sessions_row = fetch_one(
+                            """
+                            SELECT COUNT(*) AS total
+                            FROM `session`
+                            WHERE section_id = %s
+                            AND is_active = 0
+                            """,
+                            (selected_section_id,)
+                        )
+
+                        present_sessions_row = fetch_one(
+                            """
+                            SELECT COUNT(*) AS total
+                            FROM attendance
+                            JOIN `session` 
+                                ON attendance.session_id = `session`.session_id
+                            WHERE `session`.section_id = %s
+                            AND `session`.is_active = 0
+                            AND attendance.student_id = %s
+                            AND attendance.status = 'Present'
+                            """,
+                            (selected_section_id, student["student_id"])
+                        )
+
+                        total_sessions = total_sessions_row["total"]
+                        present_count = present_sessions_row["total"]
+                        absent_count = total_sessions - present_count
+
+                        if total_sessions > 0:
+                            attendance_rate = int((present_count / total_sessions) * 100)
+                        else:
+                            attendance_rate = 0
+
+                        result = {
+                            "student_name": student["full_name"],
+                            "university_id": student["university_id"],
+                            "department": student["department"],
+                            "course_name": course["name"] if course else "Unknown",
+                            "section": course["section"] if course else "-",
+                            "total_sessions": total_sessions,
+                            "present_count": present_count,
+                            "absent_count": absent_count,
+                            "attendance_rate": attendance_rate
+                        }
+
+    return render_template(
+        "student_absence.html",
+        courses=instructor_courses,
+        selected_section_id=selected_section_id,
+        university_id=university_id,
+        result=result,
+        error=error
+    )
+# =========================
 # PDF EXPORT
 # =========================
 
@@ -1083,6 +1203,7 @@ def export_session_report_pdf(session_id):
 # =========================
 # API
 # =========================
+
 @app.route("/api/mark-attendance", methods=["POST"])
 def api_mark_attendance():
 
@@ -1097,6 +1218,7 @@ def api_mark_attendance():
     session_id = data.get("session_id")
     student_id = data.get("student_id")
     university_id = data.get("university_id")
+    name = data.get("name")
 
     if not session_id:
         return jsonify({
@@ -1132,10 +1254,24 @@ def api_mark_attendance():
         if student:
             student_id = student["student_id"]
 
+    # If model sends student name instead of student_id
+    if not student_id and name:
+        student = fetch_one(
+            """
+            SELECT student_id
+            FROM student
+            WHERE full_name = %s
+            """,
+            (name,)
+        )
+
+        if student:
+            student_id = student["student_id"]
+
     if not student_id:
         return jsonify({
             "success": False,
-            "message": "student_id or university_id is required"
+            "message": "student_id, university_id, or name is required"
         }), 400
 
     # Check if student belongs to the same section
@@ -1190,6 +1326,7 @@ def api_mark_attendance():
         "session_id": session_id
     }), 201
 
+
 @app.route("/api/dashboard-data")
 def dashboard_data():
 
@@ -1204,8 +1341,6 @@ def dashboard_data():
         "sessions": sessions_count["total"],
         "attendance": attendance_count["total"]
     })
-
-
 # =========================
 # RUN
 # =========================

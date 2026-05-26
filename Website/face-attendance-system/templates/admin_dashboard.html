@@ -38,55 +38,60 @@
             <button onclick="toggleSidebar()">☰</button>
         </div>
 
-        <h2>Admin Dashboard</h2>
-
-        <p class="page-subtitle">
-            Monitor attendance sessions, and system reports.
-        </p>
+        <!-- PAGE HEADER -->
+        <div class="page-header-card">
+            <div>
+                <h2>Admin Dashboard</h2>
+                <p class="page-subtitle">
+                    Monitor system activity, attendance sessions, and reports.
+                </p>
+            </div>
+        </div>
 
         <!-- STATS CARDS -->
-       <div class="grid">
+        <div class="grid">
 
-    <div class="card stat-card">
-        <h3>Total Students</h3>
-        <h2>{{ total_students }}</h2>
-    </div>
+            <div class="card stat-card">
+                <h3>Total Students</h3>
+                <h2>{{ total_students }}</h2>
+            </div>
 
-    <div class="card stat-card">
-        <h3>Active Sessions</h3>
-        <h2>{{ active_sessions }}</h2>
-    </div>
+            <div class="card stat-card">
+                <h3>Active Sessions</h3>
+                <h2>{{ active_sessions }}</h2>
+            </div>
 
-    <div class="card stat-card">
-        <h3>Closed Sessions</h3>
-        <h2>{{ closed_sessions }}</h2>
-    </div>
+            <div class="card stat-card">
+                <h3>Closed Sessions</h3>
+                <h2>{{ closed_sessions }}</h2>
+            </div>
 
-    <div class="card stat-card">
-        <h3>Attendance Records</h3>
-        <h2>{{ total_attendance }}</h2>
-    </div>
+            <div class="card stat-card">
+                <h3>Attendance Records</h3>
+                <h2>{{ total_attendance }}</h2>
+            </div>
 
-</div>
+        </div>
 
         <br>
 
         <!-- ADMIN ACTIONS -->
-<div class="card">
+        <div class="card">
 
-    <h3>Admin Actions</h3>
+            <div class="section-title-row">
+                <div>
+                    <h3>Admin Actions</h3>
+                    <p class="page-subtitle">
+                        Access attendance reports and review course session records.
+                    </p>
+                </div>
+            </div>
 
-    <p class="page-subtitle">
-        The admin can monitor attendance sessions and view reports.
-    </p>
+            <a href="/reports" class="btn">
+                View Reports
+            </a>
 
-    <br>
-
-    <a href="/reports" class="btn pdf-btn">
-        View Reports
-    </a>
-
-</div>
+        </div>
 
     </div>
 

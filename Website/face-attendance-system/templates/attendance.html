@@ -29,6 +29,10 @@
             <span>Reports</span>
         </a>
 
+        <a href="/student-absence">
+            <span>Student Absence</span>
+        </a>
+
         <a href="/logout">
             <span>Logout</span>
         </a>
@@ -42,49 +46,67 @@
             <button onclick="toggleSidebar()">☰</button>
         </div>
 
-        <h2>Live Attendance Session</h2>
-
-        <p class="page-subtitle">
-            This page monitors students detected by the face recognition model.
-        </p>
+        <!-- PAGE HEADER -->
+        <div class="page-header-card">
+            <h2>Live Attendance Session</h2>
+            <p class="page-subtitle">
+                Monitor students detected by the face recognition model during this session.
+            </p>
+        </div>
 
         <!-- SESSION INFO -->
         <div class="card">
 
-            <h3>Current Session</h3>
+            <div class="section-title-row">
+                <div>
+                    <h3>Current Session</h3>
+                    <p class="page-subtitle">
+                        Review the current lecture information and session status.
+                    </p>
+                </div>
 
-            <br>
+                {% if session.status == 'active' %}
+                    <a href="/end-session/{{ session.session_id }}" class="btn danger-btn">
+                        End Session
+                    </a>
+                {% endif %}
+            </div>
 
-            <p><strong>Session ID:</strong> {{ session.session_id }}</p>
+            <table>
+                <tr>
+                    <th>Session ID</th>
+                    <td>{{ session.session_id }}</td>
+                </tr>
 
-            {% if course %}
-                <p><strong>Course:</strong> {{ course.name }} - Section {{ course.section }}</p>
-            {% endif %}
+                {% if course %}
+                <tr>
+                    <th>Course</th>
+                    <td>{{ course.name }}</td>
+                </tr>
 
-            <p>
-    <strong>Status:</strong>
+                <tr>
+                    <th>Section</th>
+                    <td>{{ course.section }}</td>
+                </tr>
+                {% endif %}
 
-    {% if session.status == 'active' %}
-        <span class="status-badge status-active-badge">Active</span>
-    {% else %}
-        <span class="status-badge status-closed-badge">Closed</span>
-    {% endif %}
-</p>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        {% if session.status == 'active' %}
+                            <span class="status-badge status-active-badge">Active</span>
+                        {% else %}
+                            <span class="status-badge status-closed-badge">Closed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
 
-            <br>
-
-            {% if session.status == 'active' %}
-
-                <a href="/end-session/{{ session.session_id }}" class="btn danger-btn">
-                    End Session
-                </a>
-
-            {% else %}
-
+            {% if session.status != 'active' %}
+                <br>
                 <p class="status-closed">
                     This session has been closed.
                 </p>
-
             {% endif %}
 
         </div>
@@ -121,7 +143,16 @@
         <!-- PRESENT STUDENTS -->
         <div class="card">
 
-            <h3>Present Students</h3>
+            <div class="section-title-row">
+                <div>
+                    <h3>Present Students</h3>
+                    <p class="page-subtitle">
+                        Students who have been marked as present in this session.
+                    </p>
+                </div>
+            </div>
+
+            {% if present_students %}
 
             <table>
 
@@ -145,6 +176,15 @@
 
             </table>
 
+            {% else %}
+
+            <div class="empty-message">
+                <h3>No Present Students Yet</h3>
+                <p>No students have been detected in this session yet.</p>
+            </div>
+
+            {% endif %}
+
         </div>
 
         <br>
@@ -152,7 +192,16 @@
         <!-- ABSENT STUDENTS -->
         <div class="card">
 
-            <h3>Absent Students</h3>
+            <div class="section-title-row">
+                <div>
+                    <h3>Absent Students</h3>
+                    <p class="page-subtitle">
+                        Students who have not been marked as present yet.
+                    </p>
+                </div>
+            </div>
+
+            {% if absent_students %}
 
             <table>
 
@@ -175,6 +224,15 @@
                 {% endfor %}
 
             </table>
+
+            {% else %}
+
+            <div class="empty-message">
+                <h3>No Absent Students</h3>
+                <p>All students in this section are marked as present.</p>
+            </div>
+
+            {% endif %}
 
         </div>
 
