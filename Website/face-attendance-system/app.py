@@ -59,47 +59,6 @@ def execute_query(query, params=None):
 
 
 # =========================
-# TEMPORARY DATA
-# لاحقًا سنستبدلها كلها بالداتا بيز
-# =========================
-
-students = [
-    {"id": "12001", "name": "Ahmad Ali", "dept": "CS"},
-    {"id": "12002", "name": "Sara Mohamed", "dept": "IT"},
-    {"id": "12003", "name": "Omar Khaled", "dept": "CS"},
-]
-
-courses = [
-    {
-        "id": 1,
-        "name": "Web Development",
-        "section": "A",
-        "instructor_username": "instructor",
-        "day": "Wednesday",
-        "start_time": "08:00",
-        "end_time": "12:00"
-    },
-    {
-        "id": 2,
-        "name": "Computer Networks",
-        "section": "B",
-        "instructor_username": "instructor",
-        "day": "Wednesday",
-        "start_time": "08:00",
-        "end_time": "12:00"
-    },
-]
-
-course_students = {
-    1: ["12001", "12002"],
-    2: ["12002", "12003"],
-}
-
-sessions = []
-attendance = []
-
-
-# =========================
 # HELPERS
 # =========================
 
@@ -211,6 +170,8 @@ def get_instructor_courses():
         c["end_time"] = format_time_value(c["end_time"])
 
     return instructor_courses
+
+
 def get_all_courses_sections():
 
     all_courses = fetch_all(
@@ -234,6 +195,7 @@ def get_all_courses_sections():
         c["end_time"] = format_time_value(c["end_time"])
 
     return all_courses
+
 
 def get_students_for_courses(instructor_courses):
 
@@ -285,7 +247,6 @@ def is_course_active_now(course):
     current_day_full = now.strftime("%A")
     current_time = now.strftime("%H:%M")
 
-    # تنظيف شكل الأيام القادمة من الداتا بيز
     days_text = str(course["day"])
     days_text = days_text.replace("{", "")
     days_text = days_text.replace("}", "")
@@ -302,6 +263,7 @@ def is_course_active_now(course):
         (current_day_short in course_days or current_day_full in course_days)
         and start_time <= current_time <= end_time
     )
+
 
 def get_active_courses_now(instructor_courses):
     return [
@@ -752,6 +714,7 @@ def mark_attendance():
 
     return redirect(f"/attendance/{session_id}")
 
+
 # =========================
 # REPORTS
 # =========================
@@ -829,7 +792,6 @@ def reports():
     selected_course_name = request.form.get("course_name") if request.method == "POST" else ""
     selected_section = request.form.get("section") if request.method == "POST" else ""
 
-    # Admin يرى كل المواد والشعب والجلسات
     if is_admin():
         available_courses = get_all_courses_sections()
 
@@ -847,7 +809,6 @@ def reports():
             """
         )
 
-    # Instructor يرى فقط مواده وشعبه وجلساته
     else:
         available_courses = get_instructor_courses()
 
@@ -881,13 +842,10 @@ def reports():
         for row in visible_sessions_rows
     ]
 
-    # أسماء المواد حسب الدور
     course_names = sorted(set(
         c["name"] for c in available_courses
     ))
 
-    # للإنستركتور: الشعب تظهر بعد اختيار المادة فقط
-    # للأدمن: الشعب كلها متاحة
     if is_instructor() and selected_course_name:
         sections = sorted(set(
             c["section"] for c in available_courses
@@ -900,7 +858,6 @@ def reports():
     else:
         sections = []
 
-    # فلترة حسب المادة
     if selected_course_name:
         allowed_section_ids = [
             c["id"] for c in available_courses
@@ -912,7 +869,6 @@ def reports():
             if s["course_id"] in allowed_section_ids
         ]
 
-    # فلترة حسب الشعبة
     if selected_section:
         allowed_section_ids = [
             c["id"] for c in available_courses
@@ -959,7 +915,6 @@ def session_report(session_id):
     if current_session is None:
         return redirect("/reports")
 
-    # Instructor لا يرى إلا جلساته
     if is_instructor():
         instructor_section_ids = [
             c["id"] for c in get_instructor_courses()
@@ -984,6 +939,8 @@ def session_report(session_id):
         attendance_percentage=report_data["attendance_percentage"],
         user_role=session.get("role")
     )
+
+
 # =========================
 # STUDENT ABSENCE CHECK
 # =========================
@@ -1104,6 +1061,8 @@ def student_absence():
         result=result,
         error=error
     )
+
+
 # =========================
 # PDF EXPORT
 # =========================
@@ -1119,7 +1078,6 @@ def export_session_report_pdf(session_id):
     if current_session is None:
         return redirect("/reports")
 
-    # Instructor لا يصدّر إلا جلساته
     if is_instructor():
         instructor_section_ids = [
             c["id"] for c in get_instructor_courses()
@@ -1200,6 +1158,8 @@ def export_session_report_pdf(session_id):
         download_name=f"session_{session_id}_report.pdf",
         mimetype="application/pdf"
     )
+
+
 # =========================
 # API
 # =========================
@@ -1240,7 +1200,6 @@ def api_mark_attendance():
             "message": "Session is closed"
         }), 400
 
-    # If model sends university_id instead of student_id
     if not student_id and university_id:
         student = fetch_one(
             """
@@ -1254,7 +1213,6 @@ def api_mark_attendance():
         if student:
             student_id = student["student_id"]
 
-    # If model sends student name instead of student_id
     if not student_id and name:
         student = fetch_one(
             """
@@ -1274,7 +1232,6 @@ def api_mark_attendance():
             "message": "student_id, university_id, or name is required"
         }), 400
 
-    # Check if student belongs to the same section
     allowed_student = fetch_one(
         """
         SELECT student_id
@@ -1291,7 +1248,6 @@ def api_mark_attendance():
             "message": "Student does not belong to this section"
         }), 403
 
-    # Prevent duplicate attendance
     already_marked = fetch_one(
         """
         SELECT attendance_id
@@ -1341,6 +1297,8 @@ def dashboard_data():
         "sessions": sessions_count["total"],
         "attendance": attendance_count["total"]
     })
+
+
 # =========================
 # RUN
 # =========================
