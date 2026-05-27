@@ -97,27 +97,6 @@ def format_time_value(value):
     return text
 
 
-def get_started_by_value():
-    """
-    Database has admin_user table.
-    If session.started_by is linked to admin_user, use first admin_user id.
-    If not found, use current logged-in user_id.
-    """
-    admin_user = fetch_one(
-        """
-        SELECT user_id
-        FROM admin_user
-        ORDER BY user_id
-        LIMIT 1
-        """
-    )
-
-    if admin_user:
-        return admin_user["user_id"]
-
-    return session.get("user_id")
-
-
 def get_course(course_id):
     course = fetch_one(
         """
@@ -546,7 +525,7 @@ def start_session(course_id):
             course_id,
             course["start_time"],
             course["end_time"],
-            get_started_by_value()
+            session.get("user_id")
         )
     )
 
@@ -1304,4 +1283,4 @@ def dashboard_data():
 # =========================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+   app.run(host="0.0.0.0", port=5000, debug=True)
