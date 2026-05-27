@@ -1197,14 +1197,14 @@ def api_mark_attendance():
             """
             SELECT student_id
             FROM student
-            WHERE full_name = %s
+            WHERE LOWER(face_label) = LOWER(%s)
+            OR LOWER(full_name) = LOWER(%s)
             """,
-            (name,)
+            (name, name)
         )
 
         if student:
-            student_id = student["student_id"]
-
+           student_id = student["student_id"]
     if not student_id:
         return jsonify({
             "success": False,
