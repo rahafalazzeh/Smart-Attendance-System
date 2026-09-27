@@ -28,6 +28,3 @@ The Face Recognition Attendance System is an intelligent, automated attendance m
 * **Frontend:** HTML5, CSS3, JavaScript, Jinja2
 * **Deployment:** Docker & Docker Compose
 
-   ```bash
-   git clone [https://github.com/rahafalazzeh/Smart-Attendance-System.git](https://github.com/rahafalazzeh/Smart-Attendance-System.git)
-   cd Smart-Attendance-System
