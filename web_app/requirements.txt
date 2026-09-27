@@ -1,0 +1,4 @@
+Flask
+reportlab
+mysql-connector-python
+requests

@@ -1,0 +1,26 @@
+services:
+  web:
+    build: .
+    container_name: rama_attendance_web
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
+  db:
+    image: mysql:8.0
+    container_name: rama_attendance_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: face_attendance_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/face_attendance_db.sql:/docker-entrypoint-initdb.d/face_attendance_db.sql
+
+volumes:
+  db_data:
